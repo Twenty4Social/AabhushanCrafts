@@ -1,43 +1,5 @@
 import Image from "next/image";
-
-const products = [
-  {
-    src: "/images/shrawan-shringar.png",
-    alt: "Shrawan Shringar green and gold necklace with matching earrings",
-  },
-  {
-    src: "/images/unakite-ganesha.png",
-    alt: "Unakite Ganesha statement ring set with diamonds",
-  },
-  {
-    src: "/images/golden-eclipse.png",
-    alt: "Golden Eclipse gemstone statement ring",
-  },
-  {
-    src: "/images/lavender-luxe.png",
-    alt: "Lavender Luxe 925 silver drop earring",
-  },
-  {
-    src: "/images/halo-dews.png",
-    alt: "Halo Dews 925 silver pear-shaped stud earrings",
-  },
-  {
-    src: "/images/olive-leaf.png",
-    alt: "Olive Leaf 925 silver bracelet",
-  },
-  {
-    src: "/images/midnight-trillion.png",
-    alt: "Midnight Trillion 925 silver blue gemstone earrings",
-  },
-  {
-    src: "/images/fleur-etoile.png",
-    alt: "Fleur Étoile 925 silver floral stud earrings",
-  },
-  {
-    src: "/images/moon-beam.png",
-    alt: "Moon Beam 925 silver bangle",
-  },
-];
+import ProductShowcase from "./ProductShowcase";
 
 const news = [
   {
@@ -123,44 +85,7 @@ export default function Home() {
         </a>
       </section>
 
-      <section className="productsSection" id="products" aria-labelledby="products-title">
-        <div className="productsHeading">
-          <div>
-            <p>Designed at Aabhushan</p>
-            <h2 id="products-title">Our Products</h2>
-          </div>
-          <p className="dragHint"><span aria-hidden="true">←</span> Swipe or scroll to explore <span aria-hidden="true">→</span></p>
-        </div>
-
-        <div className="productScroller" role="region" aria-label="Aabhushan product collection" tabIndex={0}>
-          {products.map((product, index) => (
-            <figure className="productCard" key={product.src}>
-              <Image
-                src={product.src}
-                alt={product.alt}
-                width={1080}
-                height={1350}
-                sizes="(max-width: 700px) 78vw, (max-width: 1200px) 36vw, 430px"
-                loading={index < 2 ? "eager" : "lazy"}
-              />
-              <figcaption>{String(index + 1).padStart(2, "0")}</figcaption>
-            </figure>
-          ))}
-          <div className="endCard" aria-label="End of collection">
-            <Image
-              src="/images/aabhushan-logo.png"
-              alt=""
-              width={1024}
-              height={1024}
-              sizes="140px"
-            />
-            <p>Crafted to be remembered.</p>
-            <a href="https://m.me/aabhushancrafts" target="_blank" rel="noreferrer">
-              Enquire <span aria-hidden="true">↗</span>
-            </a>
-          </div>
-        </div>
-      </section>
+      <ProductShowcase />
 
       <section className="newsSection" aria-labelledby="news-title">
         <div className="newsIntro">
