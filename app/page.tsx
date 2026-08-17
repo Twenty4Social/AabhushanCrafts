@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 const products = [
   {
     src: "/images/shrawan-shringar.png",
@@ -90,7 +92,13 @@ export default function Home() {
       <section className="frontScreen" id="top" aria-labelledby="hero-title">
         <header className="brandHeader">
           <a href="#top" aria-label="Aabhushan Crafts home">
-            <img src="/images/aabhushan-logo.png" alt="Aabhushan Crafts logo" />
+            <Image
+              src="/images/aabhushan-logo.png"
+              alt="Aabhushan Crafts logo"
+              width={1024}
+              height={1024}
+              sizes="92px"
+            />
           </a>
           <span>Handcrafted · Kathmandu</span>
         </header>
@@ -127,12 +135,25 @@ export default function Home() {
         <div className="productScroller" role="region" aria-label="Aabhushan product collection" tabIndex={0}>
           {products.map((product, index) => (
             <figure className="productCard" key={product.src}>
-              <img src={product.src} alt={product.alt} loading={index < 2 ? "eager" : "lazy"} />
+              <Image
+                src={product.src}
+                alt={product.alt}
+                width={1080}
+                height={1350}
+                sizes="(max-width: 700px) 78vw, (max-width: 1200px) 36vw, 430px"
+                loading={index < 2 ? "eager" : "lazy"}
+              />
               <figcaption>{String(index + 1).padStart(2, "0")}</figcaption>
             </figure>
           ))}
           <div className="endCard" aria-label="End of collection">
-            <img src="/images/aabhushan-logo.png" alt="" />
+            <Image
+              src="/images/aabhushan-logo.png"
+              alt=""
+              width={1024}
+              height={1024}
+              sizes="140px"
+            />
             <p>Crafted to be remembered.</p>
             <a href="https://m.me/aabhushancrafts" target="_blank" rel="noreferrer">
               Enquire <span aria-hidden="true">↗</span>

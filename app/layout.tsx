@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
 import "./globals.css";
 
-const geist = Geist({
-  variable: "--font-geist",
-  subsets: ["latin"],
-});
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://aabhushancrafts.com";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://aabhushan-crafts-kathmandu.business-in24hr.chatgpt.site"),
+  metadataBase: new URL(siteUrl),
   title: "Aabhushan Crafts | Believe in Design",
   description:
     "Discover handcrafted gold, gemstone and 925 silver jewellery by Aabhushan Crafts in Naxal, Kathmandu.",
@@ -41,7 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={geist.variable}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }
