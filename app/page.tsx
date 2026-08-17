@@ -1,234 +1,167 @@
-const collections = [
+const products = [
   {
-    eyebrow: "विवाह · Bridal",
-    title: "Bridal Heirlooms",
-    copy: "Statement gold and gemstone pieces made to hold a family story.",
-    image: "/images/bridal-hero.jpg",
-    alt: "South Asian bride wearing traditional gold jewellery",
+    src: "/images/shrawan-shringar.png",
+    alt: "Shrawan Shringar green and gold necklace with matching earrings",
   },
   {
-    eyebrow: "उत्सव · Festive",
-    title: "Celebration Gold",
-    copy: "Graceful pieces for Teej, Dashain, Tihar and every gathering in between.",
-    image: "/images/gold-necklace.jpg",
-    alt: "Gold necklace worn for a festive occasion",
+    src: "/images/unakite-ganesha.png",
+    alt: "Unakite Ganesha statement ring set with diamonds",
   },
   {
-    eyebrow: "सधैं · Everyday",
-    title: "Modern Keepsakes",
-    copy: "Quiet diamond, gemstone and silver details for the rhythm of every day.",
-    image: "/images/gem-pendant.jpg",
-    alt: "Delicate gold and gemstone pendant",
+    src: "/images/golden-eclipse.png",
+    alt: "Golden Eclipse gemstone statement ring",
+  },
+  {
+    src: "/images/lavender-luxe.png",
+    alt: "Lavender Luxe 925 silver drop earring",
+  },
+  {
+    src: "/images/halo-dews.png",
+    alt: "Halo Dews 925 silver pear-shaped stud earrings",
+  },
+  {
+    src: "/images/olive-leaf.png",
+    alt: "Olive Leaf 925 silver bracelet",
+  },
+  {
+    src: "/images/midnight-trillion.png",
+    alt: "Midnight Trillion 925 silver blue gemstone earrings",
+  },
+  {
+    src: "/images/fleur-etoile.png",
+    alt: "Fleur Étoile 925 silver floral stud earrings",
+  },
+  {
+    src: "/images/moon-beam.png",
+    alt: "Moon Beam 925 silver bangle",
   },
 ];
 
-const steps = [
+const news = [
   {
-    number: "०१",
-    title: "Share your story",
-    copy: "Bring a reference, an heirloom, or simply an occasion. We begin by listening.",
+    date: "06 Aug 2026",
+    title: "Silver imports overtake gold in Nepal for the first time",
+    source: "The Kathmandu Post",
+    href: "https://kathmandupost.com/money/2026/08/06/silver-imports-overtake-gold-in-nepal-for-the-first-time",
   },
   {
-    number: "०२",
-    title: "Shape it together",
-    copy: "We refine the metal, stones, details and fit around your taste and tradition.",
+    date: "24 Jan 2026",
+    title: "Gold crosses NPR 300,000 per tola amid global uncertainty",
+    source: "The Kathmandu Post",
+    href: "https://kathmandupost.com/money/2026/01/24/gold-soars-past-rs300-000-per-tola",
   },
   {
-    number: "०३",
-    title: "Made by hand",
-    copy: "Your piece is crafted and carefully finished by our jewellery makers in Kathmandu.",
+    date: "31 Jul 2026",
+    title: "Nepal bullion association publishes its latest market notice",
+    source: "NEGOSIDA",
+    href: "https://negosida.org/",
   },
 ];
 
 export default function Home() {
   return (
     <main>
-      <div className="announcement">
-        <span>Handcrafted in Kathmandu</span>
-        <span className="announcementDot" aria-hidden="true">◆</span>
-        <span>Gold · Diamond · Silver</span>
-      </div>
+      <section className="rateBar" aria-label="Nepal gold and silver rates">
+        <div className="rateStamp">
+          <span className="liveDot" aria-hidden="true" />
+          <span>नेपाल बजार दर</span>
+          <strong>1 Bhadra 2083</strong>
+        </div>
 
-      <header className="siteHeader">
-        <a className="brand" href="#top" aria-label="Aabhushan Crafts home">
-          <span className="brandNepali">आभूषण</span>
-          <span className="brandEnglish">Aabhushan Crafts</span>
-        </a>
-
-        <nav className="desktopNav" aria-label="Main navigation">
-          <a href="#collections">Collections</a>
-          <a href="#craft">Our craft</a>
-          <a href="#visit">Visit</a>
-        </nav>
-
-        <a className="headerCta" href="https://m.me/aabhushancrafts" target="_blank" rel="noreferrer">
-          Enquire <span aria-hidden="true">↗</span>
-        </a>
-
-        <details className="mobileMenu">
-          <summary aria-label="Open navigation">Menu</summary>
-          <nav aria-label="Mobile navigation">
-            <a href="#collections">Collections</a>
-            <a href="#craft">Our craft</a>
-            <a href="#visit">Visit us</a>
-            <a href="https://m.me/aabhushancrafts" target="_blank" rel="noreferrer">Send a message ↗</a>
-          </nav>
-        </details>
-      </header>
-
-      <section className="hero" id="top">
-        <div className="heroCopy">
-          <p className="kicker">घरदेखि उत्सवसम्म · From home to celebration</p>
-          <h1>Jewellery that<br />feels like <em>home.</em></h1>
-          <p className="heroIntro">
-            Handcrafted in Kathmandu for weddings, festivals and every meaningful
-            moment in between.
-          </p>
-          <div className="heroActions">
-            <a className="primaryButton" href="#collections">Explore collections <span aria-hidden="true">↓</span></a>
-            <a className="textLink" href="#visit">Visit our Naxal showroom <span aria-hidden="true">→</span></a>
+        <div className="rates">
+          <div className="rateItem">
+            <span>Fine Gold</span>
+            <strong>NPR 305,200</strong>
+            <small>per tola</small>
           </div>
-          <div className="heroNote">
-            <span className="heroNoteMark" aria-hidden="true">✦</span>
-            <span><strong>Made for you</strong><br />Personal consultations &amp; custom orders</span>
+          <div className="rateDivider" aria-hidden="true" />
+          <div className="rateItem">
+            <span>Silver</span>
+            <strong>NPR 4,710</strong>
+            <small>per tola</small>
           </div>
         </div>
 
-        <div className="heroVisual">
-          <img src="/images/bridal-hero.jpg" alt="Bride wearing traditional gold jewellery" />
-          <div className="imageFrame" aria-hidden="true" />
-          <div className="heroCaption">
-            <span>Bridal heirlooms</span>
-            <span>01 / 03</span>
-          </div>
-        </div>
+        <a className="rateSource" href="https://negosida.org/" target="_blank" rel="noreferrer">
+          Official source <span aria-hidden="true">↗</span>
+        </a>
       </section>
 
-      <section className="introSection" aria-labelledby="intro-heading">
-        <p className="sectionLabel">Our belief</p>
-        <h2 id="intro-heading">
-          In Nepali homes, jewellery is never just an accessory. It carries
-          <em> blessings, memory and belonging.</em>
-        </h2>
-        <div className="introDetail">
-          <div className="sunMark" aria-hidden="true"><span>आ</span></div>
-          <p>
-            Aabhushan Crafts brings enduring materials and thoughtful handwork
-            together—creating pieces that feel rooted in tradition and natural in
-            the present.
+      <section className="frontScreen" id="top" aria-labelledby="hero-title">
+        <header className="brandHeader">
+          <a href="#top" aria-label="Aabhushan Crafts home">
+            <img src="/images/aabhushan-logo.png" alt="Aabhushan Crafts logo" />
+          </a>
+          <span>Handcrafted · Kathmandu</span>
+        </header>
+
+        <div className="heroOrbit orbitOne" aria-hidden="true" />
+        <div className="heroOrbit orbitTwo" aria-hidden="true" />
+
+        <div className="heroContent">
+          <p className="heroKicker">Aabhushan Crafts · Since every idea deserves form</p>
+          <h1 id="hero-title">
+            Believe in
+            <span>Design.</span>
+          </h1>
+          <p className="heroText">
+            Jewellery shaped by thought, detail and the hands that make it real.
           </p>
         </div>
+
+        <a className="scrollCue" href="#products">
+          <span>Our products</span>
+          <span aria-hidden="true">↓</span>
+        </a>
       </section>
 
-      <section className="collectionsSection" id="collections" aria-labelledby="collections-heading">
-        <div className="sectionHeadingRow">
+      <section className="productsSection" id="products" aria-labelledby="products-title">
+        <div className="productsHeading">
           <div>
-            <p className="sectionLabel lightLabel">Made for your moments</p>
-            <h2 id="collections-heading">Find your occasion</h2>
+            <p>Designed at Aabhushan</p>
+            <h2 id="products-title">Our Products</h2>
           </div>
-          <p>Gold, diamond and silver pieces for the ways Nepal celebrates, gives and remembers.</p>
+          <p className="dragHint"><span aria-hidden="true">←</span> Swipe or scroll to explore <span aria-hidden="true">→</span></p>
         </div>
 
-        <div className="collectionGrid">
-          {collections.map((collection, index) => (
-            <a
-              className="collectionCard"
-              href="https://www.facebook.com/aabhushancrafts/photos"
-              target="_blank"
-              rel="noreferrer"
-              key={collection.title}
-            >
-              <div className="collectionImageWrap">
-                <img src={collection.image} alt={collection.alt} />
-                <span className="collectionNumber">0{index + 1}</span>
-              </div>
-              <p className="cardEyebrow">{collection.eyebrow}</p>
-              <h3>{collection.title}</h3>
-              <p>{collection.copy}</p>
-              <span className="cardLink">View inspiration <span aria-hidden="true">↗</span></span>
+        <div className="productScroller" role="region" aria-label="Aabhushan product collection" tabIndex={0}>
+          {products.map((product, index) => (
+            <figure className="productCard" key={product.src}>
+              <img src={product.src} alt={product.alt} loading={index < 2 ? "eager" : "lazy"} />
+              <figcaption>{String(index + 1).padStart(2, "0")}</figcaption>
+            </figure>
+          ))}
+          <div className="endCard" aria-label="End of collection">
+            <img src="/images/aabhushan-logo.png" alt="" />
+            <p>Crafted to be remembered.</p>
+            <a href="https://m.me/aabhushancrafts" target="_blank" rel="noreferrer">
+              Enquire <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section className="newsSection" aria-labelledby="news-title">
+        <div className="newsIntro">
+          <p>Market notes</p>
+          <h2 id="news-title">Jewellery News</h2>
+        </div>
+
+        <div className="newsList">
+          {news.map((item) => (
+            <a href={item.href} target="_blank" rel="noreferrer" key={item.title}>
+              <span className="newsMeta">{item.date} · {item.source}</span>
+              <h3>{item.title}</h3>
+              <span className="newsArrow" aria-hidden="true">↗</span>
             </a>
           ))}
         </div>
       </section>
 
-      <section className="craftSection" id="craft" aria-labelledby="craft-heading">
-        <div className="craftImage">
-          <img src="/images/gold-details.jpg" alt="Gold jewellery arranged on soft fabric" />
-          <div className="materialTags" aria-label="Materials we work with">
-            <span>Gold</span><span>Diamond</span><span>Silver</span>
-          </div>
-        </div>
-
-        <div className="craftCopy">
-          <p className="sectionLabel">Made personally</p>
-          <h2 id="craft-heading">Your story,<br /><em>shaped by hand.</em></h2>
-          <p className="craftLead">
-            From a wedding set to a small gift for yourself, every custom piece
-            starts with a conversation.
-          </p>
-          <ol className="stepsList">
-            {steps.map((step) => (
-              <li key={step.number}>
-                <span className="stepNumber">{step.number}</span>
-                <div><h3>{step.title}</h3><p>{step.copy}</p></div>
-              </li>
-            ))}
-          </ol>
-          <a className="primaryButton maroonButton" href="https://m.me/aabhushancrafts" target="_blank" rel="noreferrer">
-            Begin a custom order <span aria-hidden="true">↗</span>
-          </a>
-        </div>
-      </section>
-
-      <section className="trustStrip" aria-label="Aabhushan Crafts at a glance">
-        <div><strong>22kt</strong><span>Gold craftsmanship</span></div>
-        <div><strong>1.4k+</strong><span>Facebook community</span></div>
-        <div><strong>3</strong><span>Precious materials</span></div>
-        <div><strong>1</strong><span>Naxal showroom</span></div>
-      </section>
-
-      <section className="visitSection" id="visit" aria-labelledby="visit-heading">
-        <div className="visitPattern" aria-hidden="true">
-          <span>आ</span><span>आ</span><span>आ</span><span>आ</span>
-        </div>
-        <div className="visitContent">
-          <p className="sectionLabel lightLabel">Come sit with us</p>
-          <h2 id="visit-heading">Find your piece<br />in <em>Naxal.</em></h2>
-          <p>
-            See the details up close, try on your favourites, or talk through a
-            made-for-you design with our team.
-          </p>
-          <div className="visitActions">
-            <a className="creamButton" href="https://www.google.com/maps/search/?api=1&query=Aabhushan+Crafts+Naxal+Kathmandu" target="_blank" rel="noreferrer">
-              Get directions <span aria-hidden="true">↗</span>
-            </a>
-            <a className="lightTextLink" href="tel:+97714531085">Call +977 1 4531085</a>
-          </div>
-        </div>
-
-        <address className="visitCard">
-          <p className="visitCardLabel">Aabhushan Crafts</p>
-          <h3>Naxal, Kathmandu<br />Nepal</h3>
-          <p>Call ahead for showroom hours and personal appointments.</p>
-          <div className="visitContacts">
-            <a href="tel:+97714531085">01-4531085 <span aria-hidden="true">↗</span></a>
-            <a href="mailto:aabhushancraft@gmail.com">aabhushancraft@gmail.com <span aria-hidden="true">↗</span></a>
-          </div>
-        </address>
-      </section>
-
       <footer>
-        <a className="brand footerBrand" href="#top" aria-label="Back to top">
-          <span className="brandNepali">आभूषण</span>
-          <span className="brandEnglish">Aabhushan Crafts</span>
-        </a>
-        <p>Handcrafted jewellery for Nepal and Nepali hearts everywhere.</p>
-        <div className="footerLinks">
-          <a href="https://www.facebook.com/aabhushancrafts" target="_blank" rel="noreferrer">Facebook ↗</a>
-          <a href="mailto:aabhushancraft@gmail.com">Email ↗</a>
-          <a href="#top">Back to top ↑</a>
-        </div>
-        <p className="copyright">© 2026 Aabhushan Crafts. Kathmandu, Nepal.</p>
+        <span>Aabhushan Crafts · Naxal, Kathmandu</span>
+        <a href="tel:+97714531085">+977 1 4531085</a>
+        <span>© 2026</span>
       </footer>
     </main>
   );

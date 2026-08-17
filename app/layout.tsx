@@ -8,14 +8,29 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Aabhushan Crafts | Handcrafted Jewellery in Kathmandu",
+  metadataBase: new URL("https://aabhushan-crafts-kathmandu.business-in24hr.chatgpt.site"),
+  title: "Aabhushan Crafts | Believe in Design",
   description:
-    "Gold, diamond and silver jewellery handcrafted in Kathmandu for weddings, festivals and every meaningful moment.",
+    "Discover handcrafted gold, gemstone and 925 silver jewellery by Aabhushan Crafts in Naxal, Kathmandu.",
   openGraph: {
-    title: "Aabhushan Crafts — Jewellery that feels like home",
-    description: "Handcrafted gold, diamond and silver jewellery from Naxal, Kathmandu.",
+    title: "Aabhushan Crafts — Believe in Design",
+    description: "Handcrafted jewellery shaped by thought, detail and design in Kathmandu.",
     type: "website",
     locale: "en_NP",
+    images: [
+      {
+        url: "/og.png",
+        width: 1731,
+        height: 909,
+        alt: "Aabhushan Crafts — Believe in Design",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Aabhushan Crafts — Believe in Design",
+    description: "Handcrafted jewellery shaped by thought, detail and design in Kathmandu.",
+    images: ["/og.png"],
   },
 };
 
