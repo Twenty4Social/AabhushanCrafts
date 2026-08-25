@@ -1,0 +1,10 @@
+Budgcoach
+outputs
+node_modules
+.next
+.git
+.wrangler
+*.log
+.env*
+tmp
+work

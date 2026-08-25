@@ -1,5 +1,46 @@
-import Image from "next/image";
-import ProductShowcase from "./ProductShowcase";
+import { getLiveBullionRates } from "@/app/lib/rates";
+
+// Keep the page cache short enough to pick up the daily stored rate shortly after 11:00 NPT.
+export const revalidate = 300;
+
+const products = [
+  {
+    src: "/images/shrawan-shringar.png",
+    alt: "Shrawan Shringar green and gold necklace with matching earrings",
+  },
+  {
+    src: "/images/unakite-ganesha.png",
+    alt: "Unakite Ganesha statement ring set with diamonds",
+  },
+  {
+    src: "/images/golden-eclipse.png",
+    alt: "Golden Eclipse gemstone statement ring",
+  },
+  {
+    src: "/images/lavender-luxe.png",
+    alt: "Lavender Luxe 925 silver drop earring",
+  },
+  {
+    src: "/images/halo-dews.png",
+    alt: "Halo Dews 925 silver pear-shaped stud earrings",
+  },
+  {
+    src: "/images/olive-leaf.png",
+    alt: "Olive Leaf 925 silver bracelet",
+  },
+  {
+    src: "/images/midnight-trillion.png",
+    alt: "Midnight Trillion 925 silver blue gemstone earrings",
+  },
+  {
+    src: "/images/fleur-etoile.png",
+    alt: "Fleur Étoile 925 silver floral stud earrings",
+  },
+  {
+    src: "/images/moon-beam.png",
+    alt: "Moon Beam 925 silver bangle",
+  },
+];
 
 const news = [
   {
@@ -22,31 +63,33 @@ const news = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const rates = await getLiveBullionRates();
+
   return (
     <main>
       <section className="rateBar" aria-label="Nepal gold and silver rates">
         <div className="rateStamp">
           <span className="liveDot" aria-hidden="true" />
           <span>नेपाल बजार दर</span>
-          <strong>1 Bhadra 2083</strong>
+          <strong>{rates.dateBs}</strong>
         </div>
 
         <div className="rates">
           <div className="rateItem">
             <span>Fine Gold</span>
-            <strong>NPR 305,200</strong>
+            <strong>{rates.fineGoldPerTola}</strong>
             <small>per tola</small>
           </div>
           <div className="rateDivider" aria-hidden="true" />
           <div className="rateItem">
             <span>Silver</span>
-            <strong>NPR 4,710</strong>
+            <strong>{rates.silverPerTola}</strong>
             <small>per tola</small>
           </div>
         </div>
 
-        <a className="rateSource" href="https://negosida.org/" target="_blank" rel="noreferrer">
+        <a className="rateSource" href={rates.sourceUrl} target="_blank" rel="noreferrer">
           Official source <span aria-hidden="true">↗</span>
         </a>
       </section>
@@ -54,13 +97,7 @@ export default function Home() {
       <section className="frontScreen" id="top" aria-labelledby="hero-title">
         <header className="brandHeader">
           <a href="#top" aria-label="Aabhushan Crafts home">
-            <Image
-              src="/images/aabhushan-logo.png"
-              alt="Aabhushan Crafts logo"
-              width={1024}
-              height={1024}
-              sizes="92px"
-            />
+            <img src="/images/aabhushan-logo.png" alt="Aabhushan Crafts logo" />
           </a>
           <span>Handcrafted · Kathmandu</span>
         </header>
@@ -71,12 +108,19 @@ export default function Home() {
         <div className="heroContent">
           <p className="heroKicker">Aabhushan Crafts · Since every idea deserves form</p>
           <h1 id="hero-title">
-            Believe in
-            <span>Design.</span>
+            <span className="heroLine heroLinePrimary">Believe</span>
+            <span className="heroLine heroLineSecondary">in Design</span>
           </h1>
           <p className="heroText">
             Jewellery shaped by thought, detail and the hands that make it real.
           </p>
+          <div className="heroDetails" aria-label="Aabhushan jewellery materials">
+            <span>Gold</span>
+            <i aria-hidden="true" />
+            <span>Diamond</span>
+            <i aria-hidden="true" />
+            <span>925 Silver</span>
+          </div>
         </div>
 
         <a className="scrollCue" href="#products">
@@ -85,7 +129,31 @@ export default function Home() {
         </a>
       </section>
 
-      <ProductShowcase />
+      <section className="productsSection" id="products" aria-labelledby="products-title">
+        <div className="productsHeading">
+          <div>
+            <p>Designed at Aabhushan</p>
+            <h2 id="products-title">Our Products</h2>
+          </div>
+          <p className="dragHint"><span aria-hidden="true">←</span> Swipe or scroll to explore <span aria-hidden="true">→</span></p>
+        </div>
+
+        <div className="productScroller" role="region" aria-label="Aabhushan product collection">
+          {products.map((product, index) => (
+            <figure className="productCard" key={`${product.src}-${index}`}>
+              <img src={product.src} alt={product.alt} loading={index < 2 ? "eager" : "lazy"} />
+              <figcaption>{String(index + 1).padStart(2, "0")}</figcaption>
+            </figure>
+          ))}
+          <div className="endCard" aria-label="End of collection">
+            <img src="/images/aabhushan-logo.png" alt="" />
+            <p>Crafted to be remembered.</p>
+            <a href="https://m.me/aabhushancrafts" target="_blank" rel="noreferrer">
+              Enquire <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </div>
+      </section>
 
       <section className="newsSection" aria-labelledby="news-title">
         <div className="newsIntro">
