@@ -1,7 +1,8 @@
 import "server-only";
 
 import { list, put } from "@vercel/blob";
-import { getTodayBSDate } from "./nepali-date";
+import { convertAdToBs } from "./nepali-date";
+import { parseOfficialRates, preservePriceChangeDate } from "./rate-data";
 
 export interface BullionRates {
   dateBs: string; // e.g. "5 Bhadra 2083"
@@ -14,6 +15,10 @@ export interface BullionRates {
   isLive: boolean;
   sourceUrl: string;
   updatedAt: string;
+  checkedAt?: string;
+  fineGoldChange?: number | null;
+  silverChange?: number | null;
+  comparisonDate?: string | null;
 }
 
 // Fallback baseline rates (per tola in NPR)
@@ -28,7 +33,7 @@ function hasRateStorage() {
 }
 
 function makeRates(fineGold: number, silver: number, isLive: boolean, now: Date): BullionRates {
-  const bsDate = getTodayBSDate();
+  const bsDate = convertAdToBs(now);
   const dateAd = now.toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
@@ -47,6 +52,8 @@ function makeRates(fineGold: number, silver: number, isLive: boolean, now: Date)
     isLive,
     sourceUrl: RATE_SOURCE_URL,
     updatedAt: now.toISOString(),
+    fineGoldChange: null,
+    silverChange: null,
   };
 }
 
@@ -58,7 +65,7 @@ async function readStoredBullionRates(): Promise<BullionRates | null> {
     const blob = result.blobs.find((item) => item.pathname === RATE_BLOB_PATH);
     if (!blob) return null;
 
-    const response = await fetch(blob.url, { cache: "no-store" });
+    const response = await fetch(`${blob.url}?v=${new Date(blob.uploadedAt).getTime()}`, { cache: "no-store", signal: AbortSignal.timeout(5000) });
     if (!response.ok) return null;
     const rates = (await response.json()) as BullionRates;
     if (!Number.isFinite(rates.fineGoldNumeric) || !Number.isFinite(rates.silverNumeric)) return null;
@@ -75,22 +82,15 @@ async function saveStoredBullionRates(rates: BullionRates) {
     addRandomSuffix: false,
     allowOverwrite: true,
     contentType: "application/json",
+    cacheControlMaxAge: 60,
   });
 }
 
 async function fetchOfficialBullionRates(): Promise<BullionRates> {
   const now = new Date();
-  let fineGold = DEFAULT_FINE_GOLD;
-  let silver = DEFAULT_SILVER;
-  let isLive = false;
-
   try {
-    // Keep the public page responsive while the daily job fetches the source.
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
     const res = await fetch(RATE_API_URL, {
-      signal: controller.signal,
+      signal: AbortSignal.timeout(5000),
       headers: {
         Accept: "application/json",
         "User-Agent": "AabhushanCrafts-BullionTracker/1.0",
@@ -98,52 +98,50 @@ async function fetchOfficialBullionRates(): Promise<BullionRates> {
       cache: "no-store",
     });
 
-    clearTimeout(timeoutId);
-
     if (res.ok) {
-      const data = (await res.json()) as Array<{
-        rateType?: string;
-        todayBaseRatePerGram?: number;
-      }>;
-      const goldRow = data.find((row) => row.rateType?.includes("सुन") && row.rateType.includes("१ तोला"));
-      const silverRow = data.find((row) => row.rateType?.includes("चाँदी") && row.rateType.includes("१ तोला"));
-      const liveGold = Number(goldRow?.todayBaseRatePerGram);
-      const liveSilver = Number(silverRow?.todayBaseRatePerGram);
-
-      if (Number.isFinite(liveGold) && Number.isFinite(liveSilver)) {
-        fineGold = liveGold;
-        silver = liveSilver;
-        isLive = true;
-      }
+      const quote = parseOfficialRates(await res.json());
+      return {
+        ...makeRates(quote.gold, quote.silver, true, new Date(quote.publishedAt)),
+        fineGoldChange: quote.goldChange,
+        silverChange: quote.silverChange,
+        comparisonDate: quote.comparisonDate,
+        checkedAt: now.toISOString(),
+      };
     }
   } catch {
-    isLive = false;
+    // Keep the last verified quote when the upstream feed is unavailable.
   }
-
-  return makeRates(fineGold, silver, isLive, now);
+  // An undated fallback must never look like a freshly published quote.
+  return { ...makeRates(DEFAULT_FINE_GOLD, DEFAULT_SILVER, false, now), dateBs: "Rate unavailable" };
 }
 
 export async function getLiveBullionRates(): Promise<BullionRates> {
   const stored = await readStoredBullionRates();
-  // A previous fallback must not permanently mask a newly available live source.
-  if (stored?.isLive) return stored;
+  // A missed cron must not leave the saved quote frozen indefinitely.
+  const age = Date.now() - Date.parse(stored?.checkedAt ?? "");
+  if (stored?.isLive && age >= 0 && age < 15 * 60 * 1000) return stored;
 
   const fresh = await fetchOfficialBullionRates();
   if (fresh.isLive) {
+    const merged = preservePriceChangeDate(stored, fresh);
     try {
-      await saveStoredBullionRates(fresh);
+      await saveStoredBullionRates(merged);
     } catch {
       // The live source still keeps the page useful if storage is unavailable.
     }
+    return merged;
   }
-  return fresh;
+  return stored?.isLive ? stored : fresh;
 }
 
 export async function refreshBullionRates(): Promise<BullionRates> {
   const fresh = await fetchOfficialBullionRates();
   if (!fresh.isLive) throw new Error("The official gold-rate source did not return a valid live rate.");
-  await saveStoredBullionRates(fresh);
-  return fresh;
+
+  const stored = await readStoredBullionRates();
+  const merged = preservePriceChangeDate(stored, fresh);
+  await saveStoredBullionRates(merged);
+  return merged;
 }
 
 export function formatCurrency(amount: number): string {

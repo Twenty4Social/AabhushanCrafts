@@ -30,6 +30,29 @@ function readFileAsDataUrl(file: File) {
   });
 }
 
+async function readApiResult<T>(response: Response): Promise<T> {
+  if (response.status === 413) throw new Error("The upload is too large. Please choose an image smaller than 3 MB.");
+  const text = await response.text();
+  try { return JSON.parse(text) as T; } catch {
+    throw new Error(response.status === 401
+      ? "Your admin session expired. Please sign in again."
+      : "The server could not complete the upload. Your form is still here; please try saving again.");
+  }
+}
+
+async function uploadImage(source: string, id: string, role: string) {
+  if (!source.startsWith("data:")) return source;
+  const image = await fetch(source).then((response) => response.blob());
+  const body = new FormData();
+  body.set("image", image, `${role}.image`);
+  body.set("id", id);
+  body.set("role", role);
+  const response = await fetch("/api/certificates/image", { method: "POST", body });
+  const result = await readApiResult<{ url?: string; error?: string }>(response);
+  if (!response.ok || !result.url) throw new Error(result.error || "The image could not be uploaded.");
+  return result.url;
+}
+
 export default function AdminPage() {
   const [draft, setDraft] = useState<CertificateRecord>(() => ({ ...DEFAULT_CERTIFICATE }));
   const [qrSource, setQrSource] = useState("");
@@ -105,7 +128,7 @@ export default function AdminPage() {
     label: string,
   ) {
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
       setError("Please choose an image file such as JPG, PNG, or WEBP.");
       return;
     }
@@ -117,7 +140,8 @@ export default function AdminPage() {
     try {
       const imageSrc = await readFileAsDataUrl(file);
       setDraft((current) => ({ ...current, [imageField]: imageSrc, [imageNameField]: file.name }));
-      setNotice(`${label} uploaded ✓ ${file.name}`);
+      setPublishedId(null);
+      setNotice(`${label} ready ✓ ${file.name}. Save the record to upload it.`);
       setError("");
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "The image could not be uploaded.");
@@ -149,16 +173,19 @@ export default function AdminPage() {
         savedAt: new Date().toISOString(),
       };
 
+      for (const [field, role] of [["reportImageSrc", "report"], ["productImageSrc", "product"]] as const) {
+        setNotice(`Uploading ${role} image…`);
+        record[field] = await uploadImage(record[field], normalizedId, role);
+        // Keep successful uploads on retries if a later request fails.
+        setDraft((current) => ({ ...current, [field]: record[field] }));
+      }
+      setNotice("Saving certificate…");
       const response = await fetch("/api/certificates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          record,
-          reportImageDataUrl: record.reportImageSrc.startsWith("data:") ? record.reportImageSrc : null,
-          productImageDataUrl: record.productImageSrc.startsWith("data:") ? record.productImageSrc : null,
-        }),
+        body: JSON.stringify({ record }),
       });
-      const result = (await response.json()) as { record?: CertificateRecord; error?: string };
+      const result = await readApiResult<{ record?: CertificateRecord; error?: string }>(response);
 
       if (response.ok && result.record) {
         setDraft(result.record);
@@ -174,6 +201,7 @@ export default function AdminPage() {
       }
       setError("");
     } catch (saveError) {
+      setNotice("");
       setError(saveError instanceof Error ? saveError.message : "The record could not be saved.");
     } finally {
       setIsSaving(false);
