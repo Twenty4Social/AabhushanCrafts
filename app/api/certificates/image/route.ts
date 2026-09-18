@@ -15,15 +15,41 @@ export async function POST(request: Request) {
     if (!/^[A-Z0-9][A-Z0-9-]{2,31}$/.test(id) || !["report", "product"].includes(role)) {
       return Response.json({ error: "Invalid certificate image details." }, { status: 400 });
     }
-    if (!(file instanceof File) || !["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
-      return Response.json({ error: "Choose a JPG, PNG, WEBP, or GIF image." }, { status: 400 });
+    if (!(file instanceof File)) {
+      return Response.json({ error: "Invalid image file." }, { status: 400 });
     }
-    if (!file.size || file.size > 3 * 1024 * 1024) {
-      return Response.json({ error: "Each image must be smaller than 3 MB." }, { status: 413 });
+    const isImage = file.type.startsWith("image/") || /\.(png|jpe?g|webp|gif|bmp|tiff?|avif|heic|heif|svg)$/i.test(file.name);
+    if (!isImage) {
+      return Response.json({ error: "Please choose a valid image file." }, { status: 400 });
     }
-    const extension = file.type.split("/")[1].replace("jpeg", "jpg");
-    const blob = await put(`certificates/images/${id}-${role}.${extension}`, file, {
-      access: "public", addRandomSuffix: true, contentType: file.type,
+    if (!file.size || file.size > 15 * 1024 * 1024) {
+      return Response.json({ error: "Each image must be smaller than 15 MB." }, { status: 413 });
+    }
+
+    const inputBytes = Buffer.from(await file.arrayBuffer());
+    let outputBytes: Buffer = inputBytes;
+    let outputContentType = "image/webp";
+
+    if (file.type === "image/webp") {
+      outputBytes = inputBytes;
+    } else {
+      try {
+        const sharp = (await import("sharp")).default;
+        outputBytes = await sharp(inputBytes)
+          .rotate()
+          .webp({ quality: 92, effort: 4 })
+          .toBuffer();
+      } catch {
+        // If sharp is unavailable or format is not supported by sharp, fallback to original format
+        outputContentType = file.type || "application/octet-stream";
+      }
+    }
+
+    const extension = outputContentType === "image/webp" ? "webp" : (file.type.split("/")[1]?.replace("jpeg", "jpg") || "bin");
+    const blob = await put(`certificates/images/${id}-${role}.${extension}`, outputBytes, {
+      access: "public",
+      addRandomSuffix: true,
+      contentType: outputContentType,
     });
     return Response.json({ url: blob.url });
   } catch (error) {

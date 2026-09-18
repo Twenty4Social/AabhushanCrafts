@@ -66,15 +66,31 @@ export async function readServerCertificates() {
   return validRecords.map((record) => withoutLegacyCertificateCover({ ...DEFAULT_CERTIFICATE, ...record }));
 }
 
-function dataUrlParts(dataUrl: string) {
+async function processDataUrlImage(dataUrl: string) {
   const match = dataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
   if (!match) return null;
-  const [, contentType, encoded] = match;
-  const bytes = Buffer.from(encoded, "base64");
+  const [, rawContentType, encoded] = match;
+  let bytes = Buffer.from(encoded, "base64");
+  let contentType = rawContentType;
+  let extension = "webp";
+
+  if (rawContentType === "image/webp") {
+    contentType = "image/webp";
+    extension = "webp";
+  } else {
+    try {
+      const sharp = (await import("sharp")).default;
+      bytes = await sharp(bytes).rotate().webp({ quality: 92, effort: 4 }).toBuffer();
+      contentType = "image/webp";
+      extension = "webp";
+    } catch {
+      extension = rawContentType.split("/")[1]?.replace("jpeg", "jpg") || "bin";
+    }
+  }
+
   if (bytes.byteLength > MAX_CERTIFICATE_IMAGE_BYTES) {
     throw new Error("Certificate images must be smaller than 4 MB for Vercel upload.");
   }
-  const extension = contentType.split("/")[1]?.replace("jpeg", "jpg") || "bin";
   return { contentType, extension, bytes };
 }
 
@@ -90,7 +106,7 @@ export async function saveServerCertificate(record: CertificateRecord, images: C
   ] as const;
 
   for (const upload of uploads) {
-    const image = upload.dataUrl ? dataUrlParts(upload.dataUrl) : null;
+    const image = upload.dataUrl ? await processDataUrlImage(upload.dataUrl) : null;
     if (!image) continue;
 
     const imageBlob = await put(

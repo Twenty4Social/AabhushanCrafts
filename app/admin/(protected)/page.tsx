@@ -13,7 +13,7 @@ import {
 } from "@/app/lib/certificates";
 
 const ID_PATTERN = /^[A-Z0-9][A-Z0-9-]{2,31}$/;
-const MAX_IMAGE_SIZE = 3 * 1024 * 1024;
+const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
 type UploadImageField = "reportImageSrc" | "productImageSrc";
 type UploadNameField = "reportImageName" | "productImageName";
 
@@ -21,17 +21,64 @@ function normalizeId(value: string) {
   return value.trim().toUpperCase().replace(/\s+/g, "-");
 }
 
-function readFileAsDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error("The image could not be read."));
-    reader.readAsDataURL(file);
+async function convertFileToWebP(
+  file: File,
+  maxDimension = 2560,
+  quality = 0.92,
+): Promise<{ dataUrl: string; webpName: string }> {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      let width = img.naturalWidth || img.width;
+      let height = img.naturalHeight || img.height;
+
+      // Downscale only if exceeding maxDimension, maintaining aspect ratio
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Unable to create canvas context for image processing."));
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Convert to WebP data URL with 0.92 quality (excellent visual quality, compact size)
+      let dataUrl = canvas.toDataURL("image/webp", quality);
+      if (!dataUrl.startsWith("data:image/webp")) {
+        dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+      }
+
+      const baseName = file.name.replace(/\.[^/.]+$/, "");
+      const webpName = `${baseName}.webp`;
+      resolve({ dataUrl, webpName });
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("The selected image could not be loaded. Please ensure it is a valid image file."));
+    };
+
+    img.src = objectUrl;
   });
 }
 
 async function readApiResult<T>(response: Response): Promise<T> {
-  if (response.status === 413) throw new Error("The upload is too large. Please choose an image smaller than 3 MB.");
+  if (response.status === 413) throw new Error("The upload is too large. Please choose an image smaller than 15 MB.");
   const text = await response.text();
   try { return JSON.parse(text) as T; } catch {
     throw new Error(response.status === 401
@@ -44,7 +91,7 @@ async function uploadImage(source: string, id: string, role: string) {
   if (!source.startsWith("data:")) return source;
   const image = await fetch(source).then((response) => response.blob());
   const body = new FormData();
-  body.set("image", image, `${role}.image`);
+  body.set("image", image, `${role}.webp`);
   body.set("id", id);
   body.set("role", role);
   const response = await fetch("/api/certificates/image", { method: "POST", body });
@@ -128,23 +175,25 @@ export default function AdminPage() {
     label: string,
   ) {
     if (!file) return;
-    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
-      setError("Please choose an image file such as JPG, PNG, or WEBP.");
+    const isImage = file.type.startsWith("image/") || /\.(png|jpe?g|webp|gif|bmp|tiff?|avif|heic|heif|svg)$/i.test(file.name);
+    if (!isImage) {
+      setError("Please choose a valid image file.");
       return;
     }
     if (file.size > MAX_IMAGE_SIZE) {
-      setError("Please choose an image smaller than 3 MB.");
+      setError("Please choose an image smaller than 20 MB.");
       return;
     }
 
     try {
-      const imageSrc = await readFileAsDataUrl(file);
-      setDraft((current) => ({ ...current, [imageField]: imageSrc, [imageNameField]: file.name }));
+      setNotice(`Optimizing ${label} to high-quality WebP…`);
+      const { dataUrl, webpName } = await convertFileToWebP(file);
+      setDraft((current) => ({ ...current, [imageField]: dataUrl, [imageNameField]: webpName }));
       setPublishedId(null);
-      setNotice(`${label} ready ✓ ${file.name}. Save the record to upload it.`);
+      setNotice(`${label} ready ✓ ${webpName} (optimized WebP). Save the record to upload it.`);
       setError("");
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "The image could not be uploaded.");
+      setError(uploadError instanceof Error ? uploadError.message : "The image could not be processed.");
     }
   }
 
@@ -282,7 +331,7 @@ export default function AdminPage() {
             </div>
 
             <label className={`uploadBox uploadBoxReport ${draft.reportImageSrc ? "uploadBoxReady" : ""}`} htmlFor="report-image">
-              <input id="report-image" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => void handleImageChange(event.target.files?.[0], "reportImageSrc", "reportImageName", "Jewellery report")} />
+              <input id="report-image" type="file" accept="image/*" onChange={(event) => void handleImageChange(event.target.files?.[0], "reportImageSrc", "reportImageName", "Jewellery report")} />
               {draft.reportImageSrc ? (
                 <>
                   <img src={draft.reportImageSrc} alt="Uploaded jewellery report preview" />
@@ -291,7 +340,7 @@ export default function AdminPage() {
                   <small>Click to replace report image</small>
                 </>
               ) : (
-                <><span className="uploadIcon">＋</span><strong>Upload jewellery report</strong><small>JPG, PNG, or WEBP · max 3 MB</small></>
+                <><span className="uploadIcon">＋</span><strong>Upload jewellery report</strong><small>Any image format · auto-converted to high quality WebP</small></>
               )}
             </label>
 
@@ -301,7 +350,7 @@ export default function AdminPage() {
             </div>
 
             <label className={`uploadBox uploadBoxProduct ${draft.productImageSrc ? "uploadBoxReady" : ""}`} htmlFor="product-image">
-              <input id="product-image" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => void handleImageChange(event.target.files?.[0], "productImageSrc", "productImageName", "Product image")} />
+              <input id="product-image" type="file" accept="image/*" onChange={(event) => void handleImageChange(event.target.files?.[0], "productImageSrc", "productImageName", "Product image")} />
               {draft.productImageSrc ? (
                 <>
                   <img src={draft.productImageSrc} alt="Uploaded jewellery product preview" />
@@ -310,7 +359,7 @@ export default function AdminPage() {
                   <small>Click to replace product image</small>
                 </>
               ) : (
-                <><span className="uploadIcon">＋</span><strong>Upload product image</strong><small>Recommended · JPG, PNG, or WEBP · max 3 MB</small></>
+                <><span className="uploadIcon">＋</span><strong>Upload product image</strong><small>Recommended · any image format · auto-converted to WebP</small></>
               )}
             </label>
 
